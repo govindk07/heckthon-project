@@ -25,49 +25,39 @@ export default async function Home() {
         <div className="max-w-4xl mx-auto">
           <header className="text-center mb-12">
             <h1 className="text-4xl font-bold text-gray-800 mb-4">
-              Welcome to my app
+              🧑‍🍳 Welcome to FitBite
             </h1>
             <p className="text-lg text-gray-600">
-              Hello, {profile?.name || "there"}! 👋
+              Hello, {profile?.name || "there"}! Track your nutrition and get
+              personalized meal suggestions 👋
             </p>
           </header>
 
           <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
             <div className="text-center">
-              <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg
-                  className="w-8 h-8 text-indigo-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                  />
-                </svg>
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl">🥗</span>
               </div>
               <h2 className="text-2xl font-semibold text-gray-800 mb-2">
-                You&apos;re successfully logged in!
+                Ready to start your nutrition journey?
               </h2>
               <p className="text-gray-600 mb-6">
-                Explore your personalized dashboard and manage your profile.
+                Set up your dietary preferences and start tracking your meals
+                for personalized suggestions.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <a
-                  href="/profile"
-                  className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-indigo-700 transition-colors"
+                  href="/profile/setup"
+                  className="bg-green-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-green-700 transition-colors"
                 >
-                  View Profile
+                  🌱 Set Up Profile
                 </a>
                 <a
                   href="/profile"
                   className="bg-gray-100 text-gray-700 px-6 py-3 rounded-lg font-medium hover:bg-gray-200 transition-colors"
                 >
-                  Settings
+                  👤 View Profile
                 </a>
               </div>
             </div>
@@ -76,35 +66,52 @@ export default async function Home() {
           <div className="grid md:grid-cols-2 gap-6">
             <div className="bg-white rounded-lg shadow p-6">
               <h3 className="text-xl font-semibold text-gray-800 mb-3">
-                Quick Stats
+                🎯 Your Goals
               </h3>
               <div className="space-y-3">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Username:</span>
-                  <span className="font-medium">@{profile?.username}</span>
+                  <span className="text-gray-600">Daily Calories:</span>
+                  <span className="font-medium">
+                    Set up your profile to see
+                  </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Account Status:</span>
-                  <span className="text-green-600 font-medium">Active</span>
+                  <span className="text-gray-600">Dietary Preference:</span>
+                  <span className="font-medium">Not configured</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Allergies Tracked:</span>
+                  <span className="font-medium">None set</span>
                 </div>
               </div>
             </div>
 
             <div className="bg-white rounded-lg shadow p-6">
               <h3 className="text-xl font-semibold text-gray-800 mb-3">
-                Recent Activity
+                🚀 Quick Actions
               </h3>
               <div className="space-y-3">
-                <div className="flex items-center gap-3">
+                <a
+                  href="/profile/setup"
+                  className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-md transition-colors"
+                >
                   <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span className="text-gray-600">
-                    Account created successfully
-                  </span>
-                </div>
-                <div className="flex items-center gap-3">
+                  <span className="text-gray-600">Set dietary preferences</span>
+                </a>
+                <a
+                  href="/profile/setup"
+                  className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-md transition-colors"
+                >
                   <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                  <span className="text-gray-600">Profile setup completed</span>
-                </div>
+                  <span className="text-gray-600">Configure calorie goals</span>
+                </a>
+                <a
+                  href="/profile/setup"
+                  className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-md transition-colors"
+                >
+                  <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                  <span className="text-gray-600">Add food allergies</span>
+                </a>
               </div>
             </div>
           </div>

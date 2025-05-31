@@ -5,7 +5,15 @@ CREATE TABLE users (
   id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
   email TEXT NOT NULL,
   name TEXT NOT NULL,
-  username TEXT UNIQUE NOT NULL,
+username TEXT UNIQUE NOT NULL,  -- Profile & Personalization fields
+  dietary_preference TEXT CHECK (dietary_preference IN ('vegetarian', 'vegan', 'non-vegetarian')),
+  allergies TEXT[], -- Array of allergy tags
+  daily_calorie_goal INTEGER,
+  age INTEGER,
+  weight_kg DECIMAL(5,2),
+  height_cm INTEGER,
+  activity_level TEXT CHECK (activity_level IN ('sedentary', 'lightly_active', 'moderately_active', 'very_active', 'extremely_active')),
+  gender TEXT CHECK (gender IN ('male', 'female')),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
   PRIMARY KEY (id)
 );
