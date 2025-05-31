@@ -48,6 +48,12 @@ export default async function Home() {
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <a
+                  href="/meals"
+                  className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                >
+                  🍽️ Track Meals
+                </a>
+                <a
                   href="/profile/setup"
                   className="bg-green-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-green-700 transition-colors"
                 >
@@ -92,6 +98,13 @@ export default async function Home() {
               </h3>
               <div className="space-y-3">
                 <a
+                  href="/meals"
+                  className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-md transition-colors"
+                >
+                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  <span className="text-gray-600">Log a meal</span>
+                </a>
+                <a
                   href="/profile/setup"
                   className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-md transition-colors"
                 >
@@ -102,15 +115,8 @@ export default async function Home() {
                   href="/profile/setup"
                   className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-md transition-colors"
                 >
-                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                  <span className="text-gray-600">Configure calorie goals</span>
-                </a>
-                <a
-                  href="/profile/setup"
-                  className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-md transition-colors"
-                >
                   <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                  <span className="text-gray-600">Add food allergies</span>
+                  <span className="text-gray-600">Configure calorie goals</span>
                 </a>
               </div>
             </div>
