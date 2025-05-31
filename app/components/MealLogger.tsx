@@ -24,6 +24,38 @@ export default function MealLogger({ onMealLogged }: MealLoggerProps) {
     setError("");
 
     try {
+      // First, validate against dietary restrictions by parsing
+      const parseResponse = await fetch("/api/meals/parse", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ description: description.trim() }),
+      });
+
+      const parseData = await parseResponse.json();
+
+      // Check for dietary violations
+      if (parseData.dietary_violation) {
+        const violatingFoods = parseData.violating_foods || [];
+        const reason = parseData.reason || "This meal doesn't match your dietary preferences.";
+        
+        let errorMessage = `❌ Dietary Restriction Violation:\n\n${reason}`;
+        if (violatingFoods.length > 0) {
+          errorMessage += `\n\nProblematic foods: ${violatingFoods.join(", ")}`;
+        }
+        errorMessage += "\n\nPlease try describing a different meal that matches your dietary preferences.";
+        
+        setError(errorMessage);
+        setIsLoading(false);
+        return;
+      }
+
+      if (!parseData.success) {
+        setError("Failed to validate meal. Please try again.");
+        setIsLoading(false);
+        return;
+      }
+
+      // If validation passes, proceed with meal logging
       const response = await fetch("/api/meals", {
         method: "POST",
         headers: {
@@ -76,7 +108,7 @@ export default function MealLogger({ onMealLogged }: MealLoggerProps) {
 
         {error && (
           <div className="text-red-600 text-sm bg-red-50 p-3 rounded-md">
-            {error}
+            <div className="whitespace-pre-line">{error}</div>
           </div>
         )}
 

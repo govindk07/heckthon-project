@@ -84,6 +84,23 @@ export default function ConversationalMealLogger({
 
       const clarificationData = await clarificationResponse.json();
 
+      // Check for dietary violations first
+      if (clarificationData.dietary_violation) {
+        const violatingFoods = clarificationData.violating_foods || [];
+        const reason = clarificationData.reason || "This meal doesn't match your dietary preferences.";
+        
+        let errorMessage = `❌ Dietary Restriction Violation:\n\n${reason}`;
+        if (violatingFoods.length > 0) {
+          errorMessage += `\n\nProblematic foods: ${violatingFoods.join(", ")}`;
+        }
+        errorMessage += "\n\nPlease try describing a different meal that matches your dietary preferences.";
+        
+        setError(errorMessage);
+        setIsLoading(false);
+        setCurrentInput("");
+        return;
+      }
+
       if (clarificationData.success && clarificationData.needs_clarification) {
         setState((prev) => ({
           ...prev,
@@ -154,6 +171,22 @@ export default function ConversationalMealLogger({
       });
 
       const parseData = await parseResponse.json();
+
+      // Check for dietary violations in parsing
+      if (parseData.dietary_violation) {
+        const violatingFoods = parseData.violating_foods || [];
+        const reason = parseData.reason || "This meal doesn't match your dietary preferences.";
+        
+        let errorMessage = `❌ Dietary Restriction Violation:\n\n${reason}`;
+        if (violatingFoods.length > 0) {
+          errorMessage += `\n\nProblematic foods: ${violatingFoods.join(", ")}`;
+        }
+        errorMessage += "\n\nPlease try describing a different meal that matches your dietary preferences.";
+        
+        setError(errorMessage);
+        setState((prev) => ({ ...prev, step: "description" }));
+        return;
+      }
 
       if (parseData.success) {
         // Get nutrition info
@@ -488,7 +521,7 @@ export default function ConversationalMealLogger({
 
       {error && (
         <div className="mb-4 text-red-600 text-sm bg-red-50 p-3 rounded-md">
-          {error}
+          <div className="whitespace-pre-line">{error}</div>
         </div>
       )}
 
