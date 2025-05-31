@@ -15,7 +15,7 @@ export default async function Home() {
   // Get user profile data
   const { data: profile } = await supabase
     .from("users")
-    .select("name, username")
+    .select("*")
     .eq("id", user.id)
     .single();
 
@@ -78,16 +78,27 @@ export default async function Home() {
                 <div className="flex justify-between">
                   <span className="text-gray-600">Daily Calories:</span>
                   <span className="font-medium">
-                    Set up your profile to see
+                    {profile?.daily_calorie_goal
+                      ? `${profile.daily_calorie_goal} calories`
+                      : "Not set"}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Dietary Preference:</span>
-                  <span className="font-medium">Not configured</span>
+                  <span className="font-medium">
+                    {profile?.dietary_preference
+                      ? profile.dietary_preference.charAt(0).toUpperCase() +
+                        profile.dietary_preference.slice(1).replace("_", " ")
+                      : "Not set"}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Allergies Tracked:</span>
-                  <span className="font-medium">None set</span>
+                  <span className="font-medium">
+                    {profile?.allergies && profile.allergies.length > 0
+                      ? profile.allergies.length + " allergen(s)"
+                      : "None set"}
+                  </span>
                 </div>
               </div>
             </div>

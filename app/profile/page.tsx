@@ -58,12 +58,20 @@ export default async function Profile() {
                 <h2 className="text-xl font-semibold text-gray-800">
                   Profile Information
                 </h2>
-                <a
-                  href="/profile/setup"
-                  className="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-700 transition-colors"
-                >
-                  Edit Profile
-                </a>
+                <div className="flex gap-2">
+                  <a
+                    href="/meals"
+                    className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
+                  >
+                    🍽️ Track Meals
+                  </a>
+                  <a
+                    href="/profile/setup"
+                    className="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-700 transition-colors"
+                  >
+                    Edit Profile
+                  </a>
+                </div>
               </div>
 
               <div className="space-y-6">
