@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import { sanitizeInput } from "@/lib/sanitize";
 import { rateLimit } from "@/lib/rateLimit";
+import { createClient } from "@/utils/supabase/server";
 
 // Initialize OpenAI client with error handling for missing API key
 let openai: OpenAI | null = null;
@@ -27,6 +28,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Get authenticated user and their profile
+    const supabase = createClient();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    // Fetch user profile for dietary restrictions
+    const { data: profile, error: profileError } = await supabase
+      .from("users")
+      .select("dietary_preference, allergies")
+      .eq("id", user.id)
+      .single();
+
+    if (profileError) {
+      console.error("Profile fetch error:", profileError);
+    }
+
     const body = await request.json();
     const { description } = body;
 
@@ -48,17 +74,50 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Prepare dietary restrictions for AI validation
+    let dietaryInstructions = "";
+    if (profile?.dietary_preference) {
+      if (profile.dietary_preference === "vegetarian") {
+        dietaryInstructions += "The user is VEGETARIAN - they cannot eat meat, fish, or poultry. ";
+      } else if (profile.dietary_preference === "vegan") {
+        dietaryInstructions += "The user is VEGAN - they cannot eat any animal products including meat, fish, poultry, dairy, eggs, honey, or any animal-derived ingredients. ";
+      }
+    }
+
+    if (profile?.allergies && profile.allergies.length > 0) {
+      dietaryInstructions += `The user is allergic to: ${profile.allergies.join(", ")}. `;
+    }
+
+    if (dietaryInstructions) {
+      dietaryInstructions += "If the meal description contains any foods that violate these restrictions, return an error with 'dietary_violation': true and explain what foods are not allowed.";
+    }
+
     // Use OpenAI to parse the meal description into individual food items
     const completion = await openai.chat.completions.create({
       model: "gpt-4",
       messages: [
         {
           role: "system",
-          content: `You are a nutrition assistant that parses meal descriptions into individual food items. 
-          Parse the following meal description and return a JSON array of food items with their quantities and units.
-          Each item should have: name (string), quantity (number), unit (string, optional).
-          Be precise with quantities and use standard units (pieces, cups, grams, etc.).
-          Example output: [{"name": "boiled eggs", "quantity": 2, "unit": "pieces"}, {"name": "toast", "quantity": 1, "unit": "slice"}]`,
+          content: `You are a nutrition assistant that parses meal descriptions into individual food items and validates dietary restrictions. 
+          
+          ${dietaryInstructions}
+          
+          If there are NO dietary violations, parse the meal description and return a JSON object with:
+          {
+            "success": true,
+            "parsed_items": [{"name": "food name", "quantity": number, "unit": "unit"}]
+          }
+          
+          If there ARE dietary violations, return:
+          {
+            "success": false,
+            "dietary_violation": true,
+            "violating_foods": ["list of problematic foods"],
+            "reason": "explanation of why these foods are not allowed"
+          }
+          
+          Each parsed item should have: name (string), quantity (number), unit (string, optional).
+          Be precise with quantities and use standard units (pieces, cups, grams, etc.).`,
         },
         {
           role: "user",
@@ -78,14 +137,24 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      const parsedItems = JSON.parse(aiResponse);
+      const result = JSON.parse(aiResponse);
+
+      // Check if there's a dietary violation
+      if (result.dietary_violation) {
+        return NextResponse.json({
+          success: false,
+          dietary_violation: true,
+          violating_foods: result.violating_foods || [],
+          reason: result.reason || "This meal contains foods that don't match your dietary preferences or allergies.",
+        });
+      }
 
       // Validate the parsed items
-      if (!Array.isArray(parsedItems)) {
+      if (!result.success || !Array.isArray(result.parsed_items)) {
         throw new Error("Invalid response format");
       }
 
-      const validatedItems = parsedItems.map(
+      const validatedItems = result.parsed_items.map(
         (item: { name?: string; quantity?: number; unit?: string }) => ({
           name: sanitizeInput(item.name || ""),
           quantity: parseFloat(String(item.quantity)) || 1,

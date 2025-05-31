@@ -65,6 +65,9 @@ export interface CalorieCalculationResponse {
   success: boolean;
   nutrition?: NutritionData;
   parsed_items?: ParsedFoodItem[];
+  dietary_violation?: boolean;
+  violating_foods?: string[];
+  reason?: string;
   error?: string;
 }
 

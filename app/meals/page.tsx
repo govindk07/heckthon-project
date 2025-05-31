@@ -108,38 +108,75 @@ export default function MealTrackingPage() {
         </div>
 
         {/* Instructions */}
-        <div className="mt-8 bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">
-            How it works
-          </h2>
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="flex items-start space-x-3">
-              <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                <span className="text-blue-600 font-semibold">1</span>
-              </div>
-              <div>
-                <h3 className="font-medium text-gray-800">
-                  Describe Your Meal
-                </h3>
-                <p className="text-sm text-gray-600 mt-1">
-                  Use natural language to describe what you ate. Our AI will
-                  parse individual food items.
-                </p>
+        <div className="mt-8 space-y-6">
+          {/* Dietary Restrictions Info */}
+          {userProfile && (userProfile.dietary_preference || (userProfile.allergies && userProfile.allergies.length > 0)) && (
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+              <div className="flex items-start space-x-3">
+                <div className="flex-shrink-0">
+                  <span className="text-2xl">⚠️</span>
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-medium text-amber-800 mb-2">
+                    Your Dietary Restrictions
+                  </h3>
+                  <div className="space-y-2 text-sm text-amber-700">
+                    {userProfile.dietary_preference && (
+                      <p>
+                        <strong>Diet:</strong> {userProfile.dietary_preference === 'vegetarian' 
+                          ? 'Vegetarian (no meat, fish, or poultry)' 
+                          : userProfile.dietary_preference === 'vegan' 
+                          ? 'Vegan (no animal products)' 
+                          : 'Non-vegetarian'}
+                      </p>
+                    )}
+                    {userProfile.allergies && userProfile.allergies.length > 0 && (
+                      <p>
+                        <strong>Allergies:</strong> {userProfile.allergies.join(", ")}
+                      </p>
+                    )}
+                    <p className="text-xs mt-2">
+                      Our AI will automatically check your meals against these restrictions and alert you if there are any violations.
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
+          )}
 
-            <div className="flex items-start space-x-3">
-              <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                <span className="text-blue-600 font-semibold">2</span>
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">
+              How it works
+            </h2>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="flex items-start space-x-3">
+                <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                  <span className="text-blue-600 font-semibold">1</span>
+                </div>
+                <div>
+                  <h3 className="font-medium text-gray-800">
+                    Describe Your Meal
+                  </h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Use natural language to describe what you ate. Our AI will
+                    parse individual food items and validate against your dietary preferences.
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className="font-medium text-gray-800">
-                  Automatic Calculation
-                </h3>
-                <p className="text-sm text-gray-600 mt-1">
-                  We automatically calculate calories and macros using the
-                  Nutritionix database.
-                </p>
+
+              <div className="flex items-start space-x-3">
+                <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                  <span className="text-blue-600 font-semibold">2</span>
+                </div>
+                <div>
+                  <h3 className="font-medium text-gray-800">
+                    Automatic Calculation
+                  </h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    We automatically calculate calories and macros using the
+                    Nutritionix database.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
