@@ -1,4 +1,4 @@
-# Simple Web Application
+# FitBite: Your Smart Meal & Calorie Tracker
 
 A minimal web application built with Next.js, Supabase, and Tailwind CSS that demonstrates user authentication and profile management.
 

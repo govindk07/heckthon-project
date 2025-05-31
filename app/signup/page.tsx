@@ -12,6 +12,7 @@ export default function SignUp() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showConfirmation, setShowConfirmation] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -35,8 +36,8 @@ export default function SignUp() {
         throw new Error(result.error || "Something went wrong");
       }
 
-      // Redirect to home page
-      router.push("/");
+      // Show confirmation message instead of redirecting
+      setShowConfirmation(true);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
@@ -54,20 +55,66 @@ export default function SignUp() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Create your account
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Or{" "}
-            <Link
-              href="/login"
-              className="font-medium text-indigo-600 hover:text-indigo-500"
-            >
-              sign in to your existing account
-            </Link>
-          </p>
-        </div>
+        {showConfirmation ? (
+          // Email confirmation notice
+          <div className="text-center">
+            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
+              <svg
+                className="h-6 w-6 text-green-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+            <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
+              Check your email!
+            </h2>
+            <p className="mt-2 text-sm text-gray-600">
+              We've sent a confirmation email to <strong>{formData.email}</strong>
+            </p>
+            
+            <div className="bg-white p-6 rounded-lg shadow-md mt-6">
+              <p className="text-sm text-gray-700 mb-4">
+                Please check your email and click the confirmation link to activate your account.
+              </p>
+              <p className="text-xs text-gray-500">
+                Once confirmed, you'll be able to sign in to your account.
+              </p>
+            </div>
+
+            <div className="mt-6">
+              <Link
+                href="/login"
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+              >
+                Go to Sign In
+              </Link>
+            </div>
+          </div>
+        ) : (
+          // Original signup form
+          <>
+            <div>
+              <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+                Create your account
+              </h2>
+              <p className="mt-2 text-center text-sm text-gray-600">
+                Or{" "}
+                <Link
+                  href="/login"
+                  className="font-medium text-indigo-600 hover:text-indigo-500"
+                >
+                  sign in to your existing account
+                </Link>
+              </p>
+            </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="bg-white p-8 rounded-lg shadow-md">
@@ -152,6 +199,8 @@ export default function SignUp() {
             </div>
           </div>
         </form>
+          </>
+        )}
       </div>
     </div>
   );
