@@ -1,29 +1,76 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import MealLogger from "@/app/components/MealLogger";
 import DailySummary from "@/app/components/DailySummary";
+import SmartSuggestions from "@/app/components/SmartSuggestions";
+import type { DailySummary as DailySummaryType } from "@/types/meals";
 
 export default function MealTrackingPage() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [dailySummary, setDailySummary] = useState<DailySummaryType | null>(
+    null
+  );
+  const [userProfile, setUserProfile] = useState<{
+    dietary_preference?: string;
+    allergies?: string[];
+  } | null>(null);
 
   const handleMealLogged = () => {
     // Trigger a refresh of the daily summary
     setRefreshTrigger((prev) => prev + 1);
   };
 
+  const handleSummaryUpdate = useCallback((summary: DailySummaryType) => {
+    setDailySummary(summary);
+  }, []);
+
+  // Fetch user profile for suggestions
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await fetch("/api/profile");
+        if (response.ok) {
+          const data = await response.json();
+          setUserProfile({
+            dietary_preference: data.profile?.dietary_preference,
+            allergies: data.profile?.allergies || [],
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching profile:", error);
+      }
+    };
+
+    fetchProfile();
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-8">
+          <div className="flex justify-between items-center mb-4">
+            <a
+              href="/"
+              className="bg-gray-100 text-gray-700 px-4 py-2 rounded-md font-medium hover:bg-gray-200 transition-colors"
+            >
+              ← Back to Home
+            </a>
+            <a
+              href="/profile"
+              className="bg-indigo-600 text-white px-4 py-2 rounded-md font-medium hover:bg-indigo-700 transition-colors"
+            >
+              👤 Profile
+            </a>
+          </div>
           <h1 className="text-3xl font-bold text-gray-900">🍽️ Meal Tracking</h1>
           <p className="mt-2 text-gray-600">
             Log your meals and track your daily nutrition
           </p>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid gap-6 lg:grid-cols-3">
           {/* Meal Logger */}
           <div>
             <MealLogger onMealLogged={handleMealLogged} />
@@ -31,7 +78,18 @@ export default function MealTrackingPage() {
 
           {/* Daily Summary */}
           <div>
-            <DailySummary refreshTrigger={refreshTrigger} />
+            <DailySummary
+              refreshTrigger={refreshTrigger}
+              onSummaryUpdate={handleSummaryUpdate}
+            />
+          </div>
+
+          {/* Smart Suggestions */}
+          <div>
+            <SmartSuggestions
+              dailySummary={dailySummary}
+              userProfile={userProfile}
+            />
           </div>
         </div>
 

@@ -73,3 +73,35 @@ export interface DailySummaryResponse {
   summary?: DailySummary;
   error?: string;
 }
+
+// Smart Suggestions types
+export interface MealSuggestion {
+  id: string;
+  title: string;
+  description: string;
+  estimated_calories: number;
+  estimated_protein: number;
+  estimated_carbs: number;
+  estimated_fat: number;
+  ingredients: string[];
+  dietary_compliance: boolean;
+  allergy_safe: boolean;
+}
+
+export interface SuggestionRequest {
+  calories_remaining: number;
+  current_macros: {
+    protein: number;
+    carbs: number;
+    fat: number;
+  };
+  daily_goal: number;
+  dietary_preference?: string;
+  allergies?: string[];
+}
+
+export interface SuggestionsResponse {
+  success: boolean;
+  suggestions?: MealSuggestion[];
+  error?: string;
+}

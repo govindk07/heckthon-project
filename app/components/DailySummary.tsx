@@ -5,14 +5,47 @@ import type { DailySummaryResponse, DailySummary } from "@/types/meals";
 
 interface DailySummaryProps {
   refreshTrigger: number;
+  onSummaryUpdate?: (summary: DailySummary) => void;
 }
 
-export default function DailySummary({ refreshTrigger }: DailySummaryProps) {
+export default function DailySummary({
+  refreshTrigger,
+  onSummaryUpdate,
+}: DailySummaryProps) {
   const [summary, setSummary] = useState<DailySummary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const fetchSummary = async () => {
+  useEffect(() => {
+    const fetchSummary = async () => {
+      try {
+        setIsLoading(true);
+        const today = new Date().toISOString().split("T")[0];
+        const response = await fetch(`/api/meals?date=${today}`);
+        const data: DailySummaryResponse = await response.json();
+
+        if (data.success && data.summary) {
+          setSummary(data.summary);
+          setError("");
+          // Call the callback to update parent component only if it's different
+          if (onSummaryUpdate) {
+            onSummaryUpdate(data.summary);
+          }
+        } else {
+          setError(data.error || "Failed to load summary");
+        }
+      } catch {
+        setError("Network error. Please try again.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchSummary();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refreshTrigger]); // onSummaryUpdate is stable (wrapped in useCallback)
+
+  const handleRefresh = async () => {
     try {
       setIsLoading(true);
       const today = new Date().toISOString().split("T")[0];
@@ -22,6 +55,9 @@ export default function DailySummary({ refreshTrigger }: DailySummaryProps) {
       if (data.success && data.summary) {
         setSummary(data.summary);
         setError("");
+        if (onSummaryUpdate) {
+          onSummaryUpdate(data.summary);
+        }
       } else {
         setError(data.error || "Failed to load summary");
       }
@@ -31,10 +67,6 @@ export default function DailySummary({ refreshTrigger }: DailySummaryProps) {
       setIsLoading(false);
     }
   };
-
-  useEffect(() => {
-    fetchSummary();
-  }, [refreshTrigger]);
 
   if (isLoading) {
     return (
@@ -56,7 +88,7 @@ export default function DailySummary({ refreshTrigger }: DailySummaryProps) {
         <div className="text-red-600 text-center">
           <p>{error}</p>
           <button
-            onClick={fetchSummary}
+            onClick={handleRefresh}
             className="mt-2 text-blue-600 hover:text-blue-800"
           >
             Try again
