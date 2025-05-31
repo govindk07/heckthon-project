@@ -209,7 +209,7 @@ export async function GET(request: NextRequest) {
 
     // Get user's daily calorie goal
     const { data: profile } = await supabase
-      .from("profiles")
+      .from("users")
       .select("daily_calorie_goal")
       .eq("id", user.id)
       .single();

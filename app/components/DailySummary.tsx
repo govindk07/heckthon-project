@@ -148,18 +148,86 @@ export default function DailySummary({
             {Math.round(summary.total_protein)}g
           </div>
           <div className="text-xs text-blue-600">Protein</div>
+          {/* Protein percentage of total calories */}
+          <div className="text-xs text-blue-500 mt-1">
+            {Math.round(
+              (summary.total_protein * 4) / summary.total_calories
+            )}
+            %
+          </div>
         </div>
         <div className="text-center p-3 bg-orange-50 rounded-lg">
           <div className="text-lg font-semibold text-orange-700">
             {Math.round(summary.total_carbs)}g
           </div>
           <div className="text-xs text-orange-600">Carbs</div>
+          <div className="text-xs text-orange-500 mt-1">
+            {Math.round(
+              (summary.total_carbs * 4) / summary.total_calories
+            )}
+            %
+          </div>
         </div>
         <div className="text-center p-3 bg-purple-50 rounded-lg">
           <div className="text-lg font-semibold text-purple-700">
             {Math.round(summary.total_fat)}g
           </div>
           <div className="text-xs text-purple-600">Fat</div>
+          <div className="text-xs text-purple-500 mt-1">
+            {Math.round((summary.total_fat * 9) / summary.total_calories)}%
+          </div>
+        </div>
+      </div>
+
+      {/* Enhanced Progress Metrics */}
+      <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg">
+        <h3 className="text-sm font-medium text-gray-800 mb-3">
+          Daily Progress
+        </h3>
+        <div className="grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <span className="text-gray-600">Progress:</span>
+            <span className="ml-2 font-medium text-gray-800">
+              {Math.round(caloriePercentage)}% of goal
+            </span>
+          </div>
+          <div>
+            <span className="text-gray-600">Status:</span>
+            <span
+              className={`ml-2 font-medium ${
+                isOverGoal
+                  ? "text-red-600"
+                  : caloriePercentage >= 90
+                  ? "text-green-600"
+                  : caloriePercentage >= 70
+                  ? "text-yellow-600"
+                  : "text-blue-600"
+              }`}
+            >
+              {isOverGoal
+                ? "Over Goal"
+                : caloriePercentage >= 90
+                ? "Goal Reached"
+                : caloriePercentage >= 70
+                ? "Almost There"
+                : "Getting Started"}
+            </span>
+          </div>
+          <div>
+            <span className="text-gray-600">Meals Today:</span>
+            <span className="ml-2 font-medium text-gray-800">
+              {summary.meals.length}
+            </span>
+          </div>
+          <div>
+            <span className="text-gray-600">Avg per Meal:</span>
+            <span className="ml-2 font-medium text-gray-800">
+              {summary.meals.length > 0
+                ? Math.round(summary.total_calories / summary.meals.length)
+                : 0}{" "}
+              cal
+            </span>
+          </div>
         </div>
       </div>
 
