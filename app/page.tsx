@@ -54,6 +54,12 @@ export default async function Home() {
                   🍽️ Track Meals
                 </a>
                 <a
+                  href="/meals/history"
+                  className="bg-purple-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-purple-700 transition-colors"
+                >
+                  📊 View History
+                </a>
+                <a
                   href="/profile/setup"
                   className="bg-green-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-green-700 transition-colors"
                 >
