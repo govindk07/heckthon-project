@@ -4,6 +4,13 @@ import { sanitizeInput } from "@/lib/sanitize";
 import { rateLimit } from "@/lib/rateLimit";
 import type { MealInput, ParsedFoodItem, NutritionData } from "@/types/meals";
 
+interface EnrichedFoodItem extends ParsedFoodItem {
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+}
+
 export async function POST(request: NextRequest) {
   try {
     // Apply rate limiting
@@ -31,7 +38,17 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { description, meal_date }: MealInput = body;
+    const {
+      description,
+      meal_date,
+      meal_type,
+      items,
+      total_calories: preCalculatedCalories,
+    }: MealInput & {
+      meal_type?: string;
+      items?: EnrichedFoodItem[];
+      total_calories?: number;
+    } = body;
 
     if (!description?.trim()) {
       return NextResponse.json(
@@ -43,64 +60,92 @@ export async function POST(request: NextRequest) {
     const sanitizedDescription = sanitizeInput(description);
     const mealDate = meal_date || new Date().toISOString().split("T")[0];
 
-    // Step 1: Parse meal description using AI
-    const parseResponse = await fetch(
-      `${request.nextUrl.origin}/api/meals/parse`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ description: sanitizedDescription }),
+    let parsedItems: ParsedFoodItem[];
+    let totalNutrition: NutritionData;
+    let itemNutrition: NutritionData[];
+
+    // Check if items are pre-parsed (from conversational logger)
+    if (items && items.length > 0 && preCalculatedCalories) {
+      // Use pre-parsed and pre-calculated data
+      parsedItems = items.map((item) => ({
+        name: sanitizeInput(item.name || ""),
+        quantity: item.quantity || 1,
+        unit: item.unit || undefined,
+      }));
+
+      totalNutrition = {
+        calories: preCalculatedCalories,
+        protein: items.reduce((sum, item) => sum + (item.protein || 0), 0),
+        carbs: items.reduce((sum, item) => sum + (item.carbs || 0), 0),
+        fat: items.reduce((sum, item) => sum + (item.fat || 0), 0),
+      };
+
+      itemNutrition = items.map((item) => ({
+        calories: item.calories || 0,
+        protein: item.protein || 0,
+        carbs: item.carbs || 0,
+        fat: item.fat || 0,
+      }));
+    } else {
+      // Legacy flow: Parse meal description using AI
+      const parseResponse = await fetch(
+        `${request.nextUrl.origin}/api/meals/parse`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ description: sanitizedDescription }),
+        }
+      );
+
+      if (!parseResponse.ok) {
+        return NextResponse.json(
+          { success: false, error: "Failed to parse meal description" },
+          { status: 500 }
+        );
       }
-    );
 
-    if (!parseResponse.ok) {
-      return NextResponse.json(
-        { success: false, error: "Failed to parse meal description" },
-        { status: 500 }
-      );
-    }
-
-    const parseData = await parseResponse.json();
-    if (!parseData.success) {
-      return NextResponse.json(
-        { success: false, error: parseData.error },
-        { status: 500 }
-      );
-    }
-
-    const parsedItems: ParsedFoodItem[] = parseData.parsed_items;
-
-    // Step 2: Get nutrition data for parsed items
-    const nutritionResponse = await fetch(
-      `${request.nextUrl.origin}/api/meals/nutrition`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ food_items: parsedItems }),
+      const parseData = await parseResponse.json();
+      if (!parseData.success) {
+        return NextResponse.json(
+          { success: false, error: parseData.error },
+          { status: 500 }
+        );
       }
-    );
 
-    if (!nutritionResponse.ok) {
-      return NextResponse.json(
-        { success: false, error: "Failed to calculate nutrition" },
-        { status: 500 }
+      parsedItems = parseData.parsed_items;
+
+      // Get nutrition data for parsed items
+      const nutritionResponse = await fetch(
+        `${request.nextUrl.origin}/api/meals/nutrition`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ food_items: parsedItems }),
+        }
       );
-    }
 
-    const nutritionData = await nutritionResponse.json();
-    if (!nutritionData.success) {
-      return NextResponse.json(
-        { success: false, error: nutritionData.error },
-        { status: 500 }
-      );
-    }
+      if (!nutritionResponse.ok) {
+        return NextResponse.json(
+          { success: false, error: "Failed to calculate nutrition" },
+          { status: 500 }
+        );
+      }
 
-    const totalNutrition: NutritionData = nutritionData.nutrition;
-    const itemNutrition: NutritionData[] = nutritionData.item_nutrition;
+      const nutritionData = await nutritionResponse.json();
+      if (!nutritionData.success) {
+        return NextResponse.json(
+          { success: false, error: nutritionData.error },
+          { status: 500 }
+        );
+      }
+
+      totalNutrition = nutritionData.nutrition;
+      itemNutrition = nutritionData.item_nutrition;
+    }
 
     // Step 3: Save meal to database
     const { data: mealData, error: mealError } = await supabase
@@ -108,6 +153,7 @@ export async function POST(request: NextRequest) {
       .insert({
         user_id: user.id,
         description: sanitizedDescription,
+        meal_type: meal_type || "meal",
         total_calories: totalNutrition.calories,
         total_protein: totalNutrition.protein,
         total_carbs: totalNutrition.carbs,
